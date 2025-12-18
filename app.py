@@ -108,24 +108,34 @@ def compute_chart(lat,lon,dt_utc):
 def panchapakshi_api():
     data = request.json
 
-    y,m,d = map(int,data["dob"].split("-"))
-    hh,mm,ss = map(int,data["tob"].split(":"))
+    # Date & time
+    y, m, d = map(int, data["dob"].split("-"))
+    hh, mm, ss = map(int, data["tob"].split(":"))
 
-    lat,lon,address = geocode_place(data["place"])
-    tzname = get_timezone(lat,lon)
-    dt_utc = to_utc(y,m,d,hh,mm,ss,tzname)
+    # Latitude & Longitude (DIRECT)
+    lat = float(data["lat"])
+    lon = float(data["lon"])
 
-    moon_rasi, moon_nak, nak_i, bird, paksha, tithi = compute_chart(lat,lon,dt_utc)
+    # Timezone from lat/lon
+    tzname = get_timezone(lat, lon)
+
+    # Convert to UTC
+    dt_utc = to_utc(y, m, d, hh, mm, ss, tzname)
+
+    # Core calculation
+    moon_rasi, moon_nak, nak_i, bird, paksha, tithi = compute_chart(lat, lon, dt_utc)
     fe = FRIENDS_ENEMIES[bird]
 
     return jsonify({
         "name": data["name"],
-        "address": address,
+        "latitude": lat,
+        "longitude": lon,
+        "timezone": tzname,
         "moon_rasi": moon_rasi,
         "moon_nakshatra": moon_nak,
         "pancha_bird": bird,
         "paksha": paksha,
-        "tithi": round(tithi,2),
+        "tithi": round(tithi, 2),
         "friends": fe["friends"],
         "enemies": fe["enemies"]
     })
@@ -134,3 +144,4 @@ def panchapakshi_api():
 @app.route("/")
 def home():
     return "Pancha Pakshi API is running"
+
